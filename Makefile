@@ -1,11 +1,11 @@
 esync:
-	cd etl && uv sync
+	cd etl && uv sync --group dev
 
 elock:
 	cd etl && uv lock
 
 elint:
-	cd etl && ruff check .
+	cd etl && uv run ruff check src/
 
 etypecheck:
-	cd etl && mypy .
+	cd etl && uv run mypy src/
