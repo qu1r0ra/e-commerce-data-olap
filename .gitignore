@@ -1,2 +1,8 @@
+# Config
 .env
+
+# DB
+db/seed/*.sql
+
+# ETL
 etl/.venv/
