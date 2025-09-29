@@ -13,7 +13,7 @@ from src.config import MYSQL_SETTINGS
 _engine: Engine | None = None
 
 
-def get_engine() -> Engine:
+def get_source_engine() -> Engine:
     global _engine
     if _engine is None:
         _engine = create_engine(
@@ -33,6 +33,6 @@ def get_engine() -> Engine:
     retry=retry_if_exception_type((OperationalError, MySQLError)),
 )
 def ping() -> None:
-    engine = get_engine()
+    engine = get_source_engine()
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))
