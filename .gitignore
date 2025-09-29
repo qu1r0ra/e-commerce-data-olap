@@ -6,3 +6,6 @@ db/seed/*.sql
 
 # ETL
 etl/.venv/
+
+# Miscellaneous
+TODO.md
