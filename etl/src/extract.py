@@ -6,7 +6,6 @@ from .db import get_source_engine
 from .source_models import User, Product, Order, OrderItem, Rider, Courier
 
 
-# TODO: Confirm results are correct.
 def extract_all_tables() -> Dict[str, pd.DataFrame]:
     """Extract all source tables into DataFrames"""
     engine = get_source_engine()
@@ -68,8 +67,8 @@ def extract_joined_data() -> pd.DataFrame:
         u.lastName as user_last_name,
         u.address1,
         u.address2,
-        u.city as user_city,
-        u.country as user_country,
+        u.city,
+        u.country,
         u.zipCode,
         u.phoneNumber,
         u.dateOfBirth,
