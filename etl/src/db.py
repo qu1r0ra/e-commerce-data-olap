@@ -27,6 +27,7 @@ def get_source_engine() -> Engine:
             pool_pre_ping=True,
             pool_timeout=SOURCE_SETTINGS.pool_timeout,
             future=True,
+            echo=True,
         )
     return _source_engine
 
@@ -56,6 +57,7 @@ def get_warehouse_engine() -> Engine:
             pool_pre_ping=True,
             pool_timeout=WAREHOUSE_SETTINGS.pool_timeout,
             future=True,
+            echo=True,
         )
     return _warehouse_engine
 
