@@ -26,7 +26,7 @@ class PostgresSettings(BaseModel):
     port: int = Field(default=int(os.getenv("POSTGRES_PORT", "5432")))
     user: str = Field(default=os.getenv("POSTGRES_USER", "postgres"))
     password: str = Field(default=os.getenv("POSTGRES_PASSWORD", ""))
-    database: str = Field(default=os.getenv("POSTGRES_DB", "warehouse"))
+    database: str = Field(default=os.getenv("POSTGRES_DB", "postgres"))
     pool_size: int = Field(default=int(os.getenv("POSTGRES_POOL_SIZE", "10")))
     pool_timeout: int = Field(default=int(os.getenv("POSTGRES_POOL_TIMEOUT", "30")))
 
