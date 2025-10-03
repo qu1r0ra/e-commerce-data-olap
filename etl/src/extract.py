@@ -1,100 +1,91 @@
 import pandas as pd
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import text
+from sqlalchemy import select, text
 from typing import Dict
 from .db import get_source_engine
 from .source_models import User, Product, Order, OrderItem, Rider, Courier
 
 
-def extract_all_tables() -> Dict[str, pd.DataFrame]:
-    """Extract all source tables into DataFrames"""
+def extract_all_tables(
+    last_load_times: Dict[str, str] | None = None,
+) -> Dict[str, pd.DataFrame]:
+    """Extract source tables into DataFrames, optionally filtered by last load times"""
     engine = get_source_engine()
+    last_load_times = last_load_times or {}
 
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
-    try:
-        users_df = extract_table(session, User)
-        products_df = extract_table(session, Product)
-        orders_df = extract_table(session, Order)
-        order_items_df = extract_table(session, OrderItem)
-        riders_df = extract_table(session, Rider)
-        couriers_df = extract_table(session, Courier)
-
-        return {
-            "users": users_df,
-            "products": products_df,
-            "orders": orders_df,
-            "order_items": order_items_df,
-            "riders": riders_df,
-            "couriers": couriers_df,
-        }
-
-    finally:
-        session.close()
+    return {
+        "users": extract_table(engine, User, last_load_times.get("Users")),
+        "products": extract_table(engine, Product, last_load_times.get("Products")),
+        "orders": extract_table(engine, Order, last_load_times.get("Orders")),
+        "order_items": extract_table(
+            engine, OrderItem, last_load_times.get("OrderItems")
+        ),
+        "riders": extract_table(engine, Rider, last_load_times.get("Riders")),
+        "couriers": extract_table(engine, Courier, last_load_times.get("Couriers")),
+    }
 
 
-def extract_table(session, model_class) -> pd.DataFrame:
-    """Extract a single table into a DataFrame"""
-    query = session.query(model_class)
-    df = pd.read_sql(query.statement, session.bind)
-    return df
+def extract_table(engine, model_class, last_load_time=None) -> pd.DataFrame:
+    """Extract a single table with optional incremental filter"""
+    query = select(model_class)
+    if last_load_time:
+        query = query.where(model_class.updatedAt > last_load_time)
+    return pd.read_sql(query, engine)
 
 
-def extract_joined_data() -> pd.DataFrame:
-    """Extract order data with all related information in one query"""
+def extract_joined_data(last_load_time=None) -> pd.DataFrame:
+    """Extract order data with related info, optionally incremental"""
     engine = get_source_engine()
 
     query = """
     SELECT
-        o.id as order_id,
+        o.id AS order_id,
         o.orderNumber,
         o.userId,
         o.deliveryDate,
         o.deliveryRiderId,
-        o.createdAt as order_created,
-        o.updatedAt as order_updated,
+        o.createdAt AS order_created,
+        o.updatedAt AS order_updated,
 
-        oi.OrderId,
-        oi.ProductId,
+        oi.OrderId AS order_id_ref,
+        oi.ProductId AS product_id,
         oi.quantity,
         oi.notes,
-        oi.createdAt as order_item_created,
-        oi.updatedAt as order_item_updated,
+        oi.createdAt AS order_item_created,
+        oi.updatedAt AS order_item_updated,
 
+        u.id AS user_id,
         u.username,
-        u.firstName as user_first_name,
-        u.lastName as user_last_name,
-        u.address1,
-        u.address2,
+        u.firstName,
+        u.lastName,
         u.city,
         u.country,
         u.zipCode,
         u.phoneNumber,
         u.dateOfBirth,
-        u.gender as user_gender,
-        u.createdAt as user_created,
-        u.updatedAt as user_updated,
+        u.gender,
+        u.createdAt AS user_created,
+        u.updatedAt AS user_updated,
 
         p.productCode,
         p.category,
         p.description,
-        p.name as product_name,
+        p.name AS product_name,
         p.price,
-        p.createdAt as product_created,
-        p.updatedAt as product_updated,
+        p.createdAt AS product_created,
+        p.updatedAt AS product_updated,
 
-        r.firstName as rider_first_name,
-        r.lastName as rider_last_name,
+        r.id AS rider_id,
+        r.firstName AS rider_first_name,
+        r.lastName AS rider_last_name,
         r.vehicleType,
-        r.age as rider_age,
-        r.gender as rider_gender,
-        r.createdAt as rider_created,
-        r.updatedAt as rider_updated,
+        r.age,
+        r.gender AS rider_gender,
+        r.createdAt AS rider_created,
+        r.updatedAt AS rider_updated,
 
-        c.name as courier_name,
-        c.createdAt as courier_created,
-        c.updatedAt as courier_updated,
+        c.name AS courier_name,
+        c.createdAt AS courier_created,
+        c.updatedAt AS courier_updated
 
     FROM Orders o
     JOIN OrderItems oi ON o.id = oi.OrderId
@@ -102,17 +93,23 @@ def extract_joined_data() -> pd.DataFrame:
     JOIN Products p ON oi.ProductId = p.id
     LEFT JOIN Riders r ON o.deliveryRiderId = r.id
     LEFT JOIN Couriers c ON r.courierId = c.id
-    ORDER BY o.id, oi.ProductId
+    WHERE 1=1
     """
 
-    df = pd.read_sql(query, engine)
-    return df
+    if last_load_time:
+        query += " AND (o.updatedAt > %(ts)s OR oi.updatedAt > %(ts)s)"
+        params = {"ts": last_load_time}
+    else:
+        params = {}
+
+    query += " ORDER BY o.id, oi.ProductId"
+
+    return pd.read_sql(query, engine, params=params)
 
 
 def get_table_counts() -> Dict[str, int]:
     """Get row counts for all source tables"""
     engine = get_source_engine()
-
     tables = ["Users", "Products", "Orders", "OrderItems", "Riders", "Couriers"]
     counts = {}
 
