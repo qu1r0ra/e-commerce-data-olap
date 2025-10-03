@@ -1,7 +1,12 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Date, BigInteger
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date, BigInteger, Enum
 from sqlalchemy.ext.declarative import declarative_base
+import enum
 
 Base = declarative_base()
+
+
+class SourceSystem(enum.Enum):
+    MYSQL = "mysql"
 
 
 class DimUsers(Base):
@@ -16,6 +21,8 @@ class DimUsers(Base):
     gender = Column(String(255), nullable=False)
     createdAt = Column(DateTime(timezone=True), nullable=False)
     updatedAt = Column(DateTime, nullable=False)
+    sourceId = Column(BigInteger, nullable=False)
+    sourceSystem = Column(Enum(SourceSystem), nullable=False)
 
 
 class DimDate(Base):
@@ -43,6 +50,8 @@ class DimRiders(Base):
     gender = Column(String(255), nullable=False)
     createdAt = Column(DateTime(timezone=True), nullable=False)
     updatedAt = Column(DateTime, nullable=False)
+    sourceId = Column(BigInteger, nullable=False)
+    sourceSystem = Column(Enum(SourceSystem), nullable=False)
 
 
 class DimProducts(Base):
@@ -56,6 +65,8 @@ class DimProducts(Base):
     price = Column(Float, nullable=False)
     createdAt = Column(DateTime(timezone=True), nullable=False)
     updatedAt = Column(DateTime, nullable=False)
+    sourceId = Column(BigInteger, nullable=False)
+    sourceSystem = Column(Enum(SourceSystem), nullable=False)
 
 
 class FactSales(Base):
@@ -68,3 +79,5 @@ class FactSales(Base):
     productId = Column(BigInteger, nullable=False)
     quantitySold = Column(BigInteger, nullable=False)
     createdAt = Column(DateTime(timezone=True), nullable=False)
+    sourceId = Column(BigInteger, nullable=False)
+    sourceSystem = Column(Enum(SourceSystem), nullable=False)
