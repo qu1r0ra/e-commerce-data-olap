@@ -26,7 +26,7 @@ class DimUsers(Base):
     country = Column(String(255), nullable=False)
     dateOfBirth = Column(Date, nullable=False)
     gender = Column(String(255), nullable=False)
-    createdAt = Column(DateTime(timezone=True), nullable=False)
+    createdAt = Column(DateTime, nullable=False)
     updatedAt = Column(DateTime, nullable=False)
     sourceId = Column(BigInteger, nullable=False)
     sourceSystem = Column(Enum(SourceSystem), nullable=False)
@@ -55,7 +55,7 @@ class DimRiders(Base):
     courierName = Column(String(255), nullable=False)
     age = Column(Integer, nullable=False)
     gender = Column(String(255), nullable=False)
-    createdAt = Column(DateTime(timezone=True), nullable=False)
+    createdAt = Column(DateTime, nullable=False)
     updatedAt = Column(DateTime, nullable=False)
     sourceId = Column(BigInteger, nullable=False)
     sourceSystem = Column(Enum(SourceSystem), nullable=False)
@@ -70,7 +70,7 @@ class DimProducts(Base):
     description = Column(String(255))
     name = Column(String(255), nullable=False)
     price = Column(Float, nullable=False)
-    createdAt = Column(DateTime(timezone=True), nullable=False)
+    createdAt = Column(DateTime, nullable=False)
     updatedAt = Column(DateTime, nullable=False)
     sourceId = Column(BigInteger, nullable=False)
     sourceSystem = Column(Enum(SourceSystem), nullable=False)
@@ -85,6 +85,13 @@ class FactSales(Base):
     deliveryRiderId = Column(BigInteger, nullable=False)
     productId = Column(BigInteger, nullable=False)
     quantitySold = Column(BigInteger, nullable=False)
-    createdAt = Column(DateTime(timezone=True), nullable=False)
+    createdAt = Column(DateTime, nullable=False)
     sourceId = Column(BigInteger, nullable=False)
     sourceSystem = Column(Enum(SourceSystem), nullable=False)
+
+
+class ETLControl(Base):
+    __tablename__ = "ETLControl"
+
+    tableName = Column(String(255), primary_key=True)
+    lastLoadTime = Column(DateTime, nullable=False)
