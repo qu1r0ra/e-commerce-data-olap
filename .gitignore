@@ -6,6 +6,7 @@ db/source/*.sql
 
 # ETL
 etl/.venv/
+etl/src/test/
 
 # Miscellaneous
 node_modules/
