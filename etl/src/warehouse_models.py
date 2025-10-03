@@ -9,6 +9,13 @@ class SourceSystem(enum.Enum):
     MYSQL = "mysql"
 
 
+class RiderVehicleType(enum.Enum):
+    MOTORCYCLE = "Motorcycle"
+    BIKE = "Bike"
+    TRIKE = "Trike"
+    CAR = "Car"
+
+
 class DimUsers(Base):
     __tablename__ = "DimUsers"
 
