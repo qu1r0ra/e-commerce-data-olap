@@ -1,6 +1,7 @@
 import pandas as pd
 from sqlalchemy import select, text
 from typing import Dict
+from datetime import datetime
 from .db import get_source_engine
 from .source_models import User, Product, Order, OrderItem, Rider, Courier
 
@@ -12,24 +13,56 @@ def extract_all_tables(
     engine = get_source_engine()
     last_load_times = last_load_times or {}
 
-    return {
-        "users": extract_table(engine, User, last_load_times.get("Users")),
-        "products": extract_table(engine, Product, last_load_times.get("Products")),
-        "orders": extract_table(engine, Order, last_load_times.get("Orders")),
-        "order_items": extract_table(
-            engine, OrderItem, last_load_times.get("OrderItems")
-        ),
-        "riders": extract_table(engine, Rider, last_load_times.get("Riders")),
-        "couriers": extract_table(engine, Courier, last_load_times.get("Couriers")),
+    # Consistent table mapping to avoid name mismatches
+    table_mapping = {
+        "users": (User, "Users"),
+        "products": (Product, "Products"),
+        "orders": (Order, "Orders"),
+        "order_items": (OrderItem, "OrderItems"),
+        "riders": (Rider, "Riders"),
+        "couriers": (Courier, "Couriers"),
     }
+
+    results = {}
+    for key, (model, table_name) in table_mapping.items():
+        last_time = last_load_times.get(table_name)
+        if last_time:
+            print(f"📥 Incremental load for {key} since {last_time}")
+        else:
+            print(f"📥 Full load for {key}")
+
+        results[key] = extract_table(engine, model, last_time)
+        print(f"✓ Extracted {len(results[key])} rows from {key}")
+
+    return results
 
 
 def extract_table(engine, model_class, last_load_time=None) -> pd.DataFrame:
     """Extract a single table with optional incremental filter"""
-    query = select(model_class)
-    if last_load_time:
-        query = query.where(model_class.updatedAt > last_load_time)
-    return pd.read_sql(query, engine)
+    try:
+        query = select(model_class)
+        if last_load_time:
+            # Convert string to datetime if needed
+            if isinstance(last_load_time, str):
+                try:
+                    last_load_time = datetime.fromisoformat(last_load_time)
+                except ValueError as e:
+                    print(
+                        f"⚠️ Invalid timestamp format for {model_class.__tablename__}: {last_load_time}"
+                    )
+                    print(f"⚠️ Error: {e}. Falling back to full extract.")
+                    return pd.read_sql(query, engine)
+
+            query = query.where(model_class.updatedAt > last_load_time)
+
+        df = pd.read_sql(query, engine)
+        if df.empty:
+            print(f"⚠️ No data found for {model_class.__tablename__}")
+        return df
+
+    except Exception as e:
+        print(f"❌ Error extracting {model_class.__tablename__}: {e}")
+        raise
 
 
 def extract_joined_data(last_load_time=None) -> pd.DataFrame:
@@ -96,15 +129,33 @@ def extract_joined_data(last_load_time=None) -> pd.DataFrame:
     WHERE 1=1
     """
 
+    params = {}
     if last_load_time:
-        query += " AND (o.updatedAt > %(ts)s OR oi.updatedAt > %(ts)s)"
-        params = {"ts": last_load_time}
-    else:
-        params = {}
+        # Convert string to datetime if needed
+        if isinstance(last_load_time, str):
+            try:
+                last_load_time = datetime.fromisoformat(last_load_time)
+            except ValueError as e:
+                print(f"⚠️ Invalid timestamp format for joined data: {last_load_time}")
+                print(f"⚠️ Error: {e}. Proceeding with full extract.")
+                last_load_time = None
+
+        if last_load_time:
+            query += " AND (o.updatedAt > :ts OR oi.updatedAt > :ts)"
+            params["ts"] = last_load_time
 
     query += " ORDER BY o.id, oi.ProductId"
 
-    return pd.read_sql(query, engine, params=params)
+    try:
+        df = pd.read_sql(query, engine, params=params)
+        if df.empty:
+            print("⚠️ No joined order data found")
+        else:
+            print(f"✓ Extracted {len(df)} joined order records")
+        return df
+    except Exception as e:
+        print(f"❌ Error extracting joined data: {e}")
+        raise
 
 
 def get_table_counts() -> Dict[str, int]:
@@ -113,9 +164,15 @@ def get_table_counts() -> Dict[str, int]:
     tables = ["Users", "Products", "Orders", "OrderItems", "Riders", "Couriers"]
     counts = {}
 
-    with engine.connect() as conn:
-        for table in tables:
-            result = conn.execute(text(f"SELECT COUNT(*) FROM {table}"))
-            counts[table] = result.scalar_one()
+    try:
+        with engine.connect() as conn:
+            for table in tables:
+                result = conn.execute(text(f"SELECT COUNT(*) FROM {table}"))
+                count = result.scalar_one()
+                counts[table] = count
+                print(f"📊 {table}: {count:,} rows")
+    except Exception as e:
+        print(f"❌ Error getting table counts: {e}")
+        raise
 
     return counts
