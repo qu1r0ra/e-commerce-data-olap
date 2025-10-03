@@ -46,7 +46,7 @@ def extract_joined_data(last_load_time=None) -> pd.DataFrame:
         o.createdAt AS order_created,
         o.updatedAt AS order_updated,
 
-        oi.OrderId AS order_id_ref,
+        oi.OrderId AS order_item_id,
         oi.ProductId AS product_id,
         oi.quantity,
         oi.notes,
