@@ -37,5 +37,5 @@ class PostgresSettings(BaseModel):
         )
 
 
-MYSQL_SETTINGS = MySQLSettings()
-POSTGRES_SETTINGS = PostgresSettings()
+SOURCE_SETTINGS = MySQLSettings()
+WAREHOUSE_SETTINGS = PostgresSettings()
