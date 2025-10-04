@@ -27,9 +27,11 @@ def get_last_load_times() -> dict:
     return {t: get_last_load_time(t) for t in tables}
 
 
-def upsert(table_name: str, df: pd.DataFrame, pk: str = "id") -> None:
+def upsert(
+    table_name: str, df: pd.DataFrame, conflict: str = "id", batch_size: int = 20000
+) -> None:
     """
-    Bulk upsert (insert/update) records in Supabase table.
+    Bulk upsert (insert/update) records in Supabase table in batches.
     Handles pandas/numpy datatypes so data is JSON serializable.
     """
     supabase = get_supabase_client()
@@ -50,17 +52,16 @@ def upsert(table_name: str, df: pd.DataFrame, pk: str = "id") -> None:
     # Convert to list of dicts
     records = df.to_dict(orient="records")
 
-    try:
-        response = supabase.table(table_name).upsert(records).execute()
-
-        # if not hasattr(response, "data"):
-        #     raise RuntimeError(f"Unexpected response type: {type(response)}")
-
-        print(f"✓ Upserted {len(records)} rows into {table_name}")
-        # return len(response) if response else len(records)
-
-    except Exception as e:
-        raise RuntimeError(f"Upsert to {table_name} failed: {e}")
+    # Upsert in batches
+    for i in range(0, len(records), batch_size):
+        batch = records[i : i + batch_size]
+        try:
+            supabase.table(table_name).upsert(batch, on_conflict=conflict).execute()
+            print(f"✓ Upserted batch {i}-{i + len(batch) - 1} into {table_name}")
+        except Exception as e:
+            raise RuntimeError(
+                f"Upsert to {table_name} failed on batch {i}-{i + len(batch) - 1}: {e}"
+            )
 
 
 def update_last_load_time(table_name: str, load_time: datetime) -> None:
