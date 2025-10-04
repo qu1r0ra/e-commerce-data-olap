@@ -16,6 +16,9 @@ from .load import get_last_load_times, upsert, update_last_load_time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+EXTRACT_LIMIT = 1000
+UPSERT_BATCH_SIZE = 10000
+
 
 def run_etl():
     logger.info("🚀 Starting ETL pipeline...")
@@ -33,8 +36,10 @@ def run_etl():
         logger.info(f"📅 Last load times: {last_load_times}")
 
         # 2️⃣ Extract
-        extracted = extract_all_tables(last_load_times)
-        facts_df = extract_joined_data(last_load_times.get("FactSales"))
+        extracted = extract_all_tables(last_load_times, limit=EXTRACT_LIMIT)
+        facts_df = extract_joined_data(
+            last_load_times.get("FactSales"), limit=EXTRACT_LIMIT
+        )
 
         # 3️⃣ Transform dimensions
         logger.info("🔄 Transforming dimension data...")
@@ -53,21 +58,36 @@ def run_etl():
             print(dim_users_df.dtypes)
             logger.info(f"📤 Upserting {len(dim_users_df)} → DimUsers")
             assert isinstance(dim_users_df, pd.DataFrame)
-            upsert("DimUsers", dim_users_df, conflict="sourceId")
+            upsert(
+                "DimUsers",
+                dim_users_df,
+                conflict="sourceId",
+                batch_size=UPSERT_BATCH_SIZE,
+            )
 
         if not dim_products_df.empty:
             print(dim_products_df.head(20))
             print(dim_products_df.dtypes)
             logger.info(f"📤 Upserting {len(dim_products_df)} → DimProducts")
             assert isinstance(dim_products_df, pd.DataFrame)
-            upsert("DimProducts", dim_products_df, conflict="sourceId")
+            upsert(
+                "DimProducts",
+                dim_products_df,
+                conflict="sourceId",
+                batch_size=UPSERT_BATCH_SIZE,
+            )
 
         if not dim_riders_df.empty:
             print(dim_riders_df.head(20))
             print(dim_riders_df.dtypes)
             logger.info(f"📤 Upserting {len(dim_riders_df)} → DimRiders")
             assert isinstance(dim_riders_df, pd.DataFrame)
-            upsert("DimRiders", dim_riders_df, conflict="sourceId")
+            upsert(
+                "DimRiders",
+                dim_riders_df,
+                conflict="sourceId",
+                batch_size=UPSERT_BATCH_SIZE,
+            )
 
         # Create DimDate as needed
         dim_date_df = None
