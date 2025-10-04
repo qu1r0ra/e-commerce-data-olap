@@ -21,21 +21,23 @@ class MySQLSettings(BaseModel):
         )
 
 
-class PostgresSettings(BaseModel):
-    host: str = Field(default=os.getenv("POSTGRES_HOST", "127.0.0.1"))
-    port: int = Field(default=int(os.getenv("POSTGRES_PORT", "5432")))
-    user: str = Field(default=os.getenv("POSTGRES_USER", "postgres"))
-    password: str = Field(default=os.getenv("POSTGRES_PASSWORD", ""))
-    database: str = Field(default=os.getenv("POSTGRES_DB", "postgres"))
-    pool_size: int = Field(default=int(os.getenv("POSTGRES_POOL_SIZE", "10")))
-    pool_timeout: int = Field(default=int(os.getenv("POSTGRES_POOL_TIMEOUT", "30")))
+# class PostgresSettings(BaseModel):
+#     host: str = Field(default=os.getenv("POSTGRES_HOST", "127.0.0.1"))
+#     port: int = Field(default=int(os.getenv("POSTGRES_PORT", "5432")))
+#     user: str = Field(default=os.getenv("POSTGRES_USER", "postgres"))
+#     password: str = Field(default=os.getenv("POSTGRES_PASSWORD", ""))
+#     database: str = Field(default=os.getenv("POSTGRES_DB", "postgres"))
+#     pool_size: int = Field(default=int(os.getenv("POSTGRES_POOL_SIZE", "10")))
+#     pool_timeout: int = Field(default=int(os.getenv("POSTGRES_POOL_TIMEOUT", "30")))
 
-    def sqlalchemy_url(self) -> str:
-        return (
-            f"postgresql+psycopg://{self.user}:{self.password}"
-            f"@{self.host}:{self.port}/{self.database}?sslmode=require"
-        )
+#     def sqlalchemy_url(self) -> str:
+#         url = (
+#             f"postgresql://{self.user}:{self.password}"
+#             f"@{self.host}:{self.port}/{self.database}"
+#         )
+#         print(url)
+#         return url
 
 
 SOURCE_SETTINGS = MySQLSettings()
-WAREHOUSE_SETTINGS = PostgresSettings()
+# WAREHOUSE_SETTINGS = PostgresSettings()
