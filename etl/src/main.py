@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+import pandas as pd
 from .db import get_source_engine, get_supabase_client
 from .extract import extract_all_tables, extract_joined_data
 from .transform import (
@@ -48,16 +49,53 @@ def run_etl():
         # 4️⃣ Load to Supabase
         logger.info("📤 Loading dimension data to Supabase...")
         if not dim_users_df.empty:
+            print(dim_users_df.head(20))
+            print(dim_users_df.dtypes)
             logger.info(f"📤 Upserting {len(dim_users_df)} → DimUsers")
+            assert isinstance(dim_users_df, pd.DataFrame)
             upsert("DimUsers", dim_users_df, pk="sourceId")
 
         if not dim_products_df.empty:
+            print(dim_products_df.head(20))
+            print(dim_products_df.dtypes)
             logger.info(f"📤 Upserting {len(dim_products_df)} → DimProducts")
+            assert isinstance(dim_products_df, pd.DataFrame)
             upsert("DimProducts", dim_products_df, pk="sourceId")
 
         if not dim_riders_df.empty:
+            print(dim_riders_df.head(20))
+            print(dim_riders_df.dtypes)
             logger.info(f"📤 Upserting {len(dim_riders_df)} → DimRiders")
+            assert isinstance(dim_riders_df, pd.DataFrame)
             upsert("DimRiders", dim_riders_df, pk="sourceId")
+
+        # Create DimDate as needed
+        dim_date_df = None
+        try:
+            existing_dim_date = (
+                supabase_client.table("DimDate")
+                .select("fullDate", count="exact")
+                .limit(1)
+                .execute()
+            )
+            print(
+                f"Existing DimDate table: data={existing_dim_date.data}, count={existing_dim_date.count}"
+            )
+
+            if not existing_dim_date.data:
+                logger.info(
+                    "📅 No DimDate records found — generating date dimension..."
+                )
+                dim_date_df = generate_dim_date()
+                upsert("DimDate", dim_date_df, pk="fullDate")
+                logger.info(f"✅ Created DimDate with {len(dim_date_df)} records")
+            else:
+                dim_date_df = existing_dim_date
+                logger.info("📅 DimDate already exists — skipping generation.")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to check or generate DimDate: {e}")
+            raise
 
         # 5️⃣ Transform + load facts
         if not facts_df.empty:
@@ -70,6 +108,8 @@ def run_etl():
         for table_name, df in extracted.items():
             if not df.empty:
                 new_time = df["updatedAt"].max()
+
+                assert isinstance(new_time, datetime)
                 update_last_load_time(table_name, new_time)
                 logger.info(f"🕒 Updated {table_name} lastLoadTime → {new_time}")
 
