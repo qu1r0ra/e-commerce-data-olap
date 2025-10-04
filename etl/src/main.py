@@ -16,8 +16,9 @@ from .load import get_last_load_times, upsert, update_last_load_time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-EXTRACT_LIMIT = 1000
-UPSERT_BATCH_SIZE = 10000
+EXTRACT_LIMIT = None
+UPSERT_BATCH_SIZE = 20000
+UPSERT_WAIT_SEC = 2.0
 
 
 def run_etl():
@@ -63,6 +64,7 @@ def run_etl():
                 dim_users_df,
                 conflict="sourceId",
                 batch_size=UPSERT_BATCH_SIZE,
+                wait_seconds=UPSERT_WAIT_SEC,
             )
 
         if not dim_products_df.empty:
@@ -75,6 +77,7 @@ def run_etl():
                 dim_products_df,
                 conflict="sourceId",
                 batch_size=UPSERT_BATCH_SIZE,
+                wait_seconds=UPSERT_WAIT_SEC,
             )
 
         if not dim_riders_df.empty:
