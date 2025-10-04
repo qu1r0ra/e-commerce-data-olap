@@ -8,11 +8,13 @@ from tenacity import (
 )
 from mysql.connector import Error as MySQLError
 from sqlalchemy.exc import OperationalError
-from src.config import SOURCE_SETTINGS, WAREHOUSE_SETTINGS
+from src.config import SOURCE_SETTINGS
+from supabase import create_client, Client
+import os
 
 # Global cached engines
 _source_engine: Engine | None = None
-_warehouse_engine: Engine | None = None
+_supabase_client: Client | None = None
 
 
 # ----------------------
@@ -48,28 +50,31 @@ def ping_source() -> None:
 # ----------------------
 # WAREHOUSE (Supabase/Postgres)
 # ----------------------
-def get_warehouse_engine() -> Engine:
-    global _warehouse_engine
-    if _warehouse_engine is None:
-        _warehouse_engine = create_engine(
-            WAREHOUSE_SETTINGS.sqlalchemy_url(),
-            pool_size=WAREHOUSE_SETTINGS.pool_size,
-            pool_pre_ping=True,
-            pool_timeout=WAREHOUSE_SETTINGS.pool_timeout,
-            future=True,
-            echo=True,
-        )
-    return _warehouse_engine
+def get_supabase_client():
+    """
+    Create or return a cached Supabase client for the warehouse.
+    Requires SUPABASE_URL and SUPABASE_SERVICE_KEY in .env
+    """
+    global _supabase_client
+    if _supabase_client is None:
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_KEY")
+
+        if not url or not key:
+            raise ValueError(
+                "Missing Supabase credentials. Ensure SUPABASE_URL and SUPABASE_SERVICE_KEY are set in .env"
+            )
+
+        _supabase_client = create_client(url, key)
+    return _supabase_client
 
 
-@retry(
-    reraise=True,
-    stop=stop_after_attempt(5),
-    wait=wait_exponential(multiplier=0.5, min=0.5, max=8),
-    retry=retry_if_exception_type(OperationalError),
-)
 def ping_warehouse() -> None:
-    """Ping the warehouse (Supabase/Postgres) DB to verify connectivity"""
-    engine = get_warehouse_engine()
-    with engine.connect() as conn:
-        conn.execute(text("SELECT 1"))
+    """Ping Supabase by performing a lightweight query."""
+    supabase = get_supabase_client()
+    try:
+        response = supabase.table("ETLControl").select("tableName").limit(1).execute()
+        print(response)
+        print("✅ Supabase connection successful!")
+    except Exception as e:
+        raise ConnectionError(f"❌ Supabase connection failed: {e}")
