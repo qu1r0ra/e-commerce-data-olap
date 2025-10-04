@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -28,7 +29,11 @@ def get_last_load_times() -> dict:
 
 
 def upsert(
-    table_name: str, df: pd.DataFrame, conflict: str = "id", batch_size: int = 20000
+    table_name: str,
+    df: pd.DataFrame,
+    conflict: str = "id",
+    batch_size: int = 20000,
+    wait_seconds: float = 2.0,
 ) -> None:
     """
     Bulk upsert (insert/update) records in Supabase table in batches.
@@ -49,10 +54,8 @@ def upsert(
             )
     df = df.where(pd.notnull(df), None)
 
-    # Convert to list of dicts
     records = df.to_dict(orient="records")
 
-    # Upsert in batches
     for i in range(0, len(records), batch_size):
         batch = records[i : i + batch_size]
         try:
@@ -62,6 +65,8 @@ def upsert(
             raise RuntimeError(
                 f"Upsert to {table_name} failed on batch {i}-{i + len(batch) - 1}: {e}"
             )
+
+        time.sleep(wait_seconds)
 
 
 def update_last_load_time(table_name: str, load_time: datetime) -> None:
