@@ -1,10 +1,10 @@
-# template-repo <!-- omit from toc -->
+# e-commerce-data-olap <!-- omit from toc -->
 
-![title](./assets/readme/title.jpg)
+![title](./readme/title.jpg)
 
 <!-- Refer to https://shields.io/badges for usage -->
 
-![Year, Term, Course](https://img.shields.io/badge/AY2526--T1-qu1r0ra-blue) ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Year, Term, Course](https://img.shields.io/badge/AY2526--T1-STADVDB-blue) ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
 
 A reusable GitHub repository template for programming projects.
 
@@ -25,7 +25,6 @@ Includes a standardized folder structure, README layout, and common configuratio
 - [4. References](#4-references)
   - [4.1. API](#41-api)
   - [4.2. Q\&A](#42-qa)
-  - [4.3. Disclaimer](#43-disclaimer)
 
 ## 1. Overview
 
@@ -71,10 +70,10 @@ Includes a standardized folder structure, README layout, and common configuratio
 
 > [fill up]
 
-### 4.3. Disclaimer
+<!-- ### 4.3. Disclaimer
 
 > [!WARNING]
 >
 > ![ChatGPT](https://img.shields.io/badge/ChatGPT-74aa9c?logo=openai&logoColor=white) ![Claude](https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=white)
 >
-> Parts of this project were generated or assisted by AI tools, including OpenAI's [ChatGPT](https://chatgpt.com/) and Anthropic's [Claude](https://www.anthropic.com/claude). While care has been taken to review and verify the generated outputs, it may still contain errors. Please review the code critically and contribute improvements where necessary.
+> Parts of this project were generated or assisted by AI tools, including OpenAI's [ChatGPT](https://chatgpt.com/) and Anthropic's [Claude](https://www.anthropic.com/claude). While care has been taken to review and verify the generated outputs, it may still contain errors. Please review the code critically and contribute improvements where necessary. -->
