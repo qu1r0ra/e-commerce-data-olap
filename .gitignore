@@ -2,7 +2,12 @@
 .env
 
 # DB
-db/seed/*.sql
+db/source/*.sql
 
 # ETL
 etl/.venv/
+etl/src/test/
+
+# Miscellaneous
+node_modules/
+TODO.md

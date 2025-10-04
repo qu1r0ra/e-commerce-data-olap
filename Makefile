@@ -19,3 +19,7 @@ etypecheck:
 # Run
 erun:
 	cd etl && uv run python -m src.main
+
+# Import SSL
+essl:
+	cd etl && uv run python -c "import ssl; print(ssl.OPENSSL_VERSION)"
