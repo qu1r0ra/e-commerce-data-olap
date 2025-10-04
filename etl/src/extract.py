@@ -85,7 +85,7 @@ def extract_joined_data(last_load_time=None, limit: int | None = None) -> pd.Dat
         o.updatedAt AS order_updated,
 
         oi.OrderId AS order_item_id,
-        oi.ProductId AS product_id,
+        oi.ProductId AS product_id_ref,
         oi.quantity,
         oi.notes,
         oi.createdAt AS order_item_created,
@@ -104,6 +104,7 @@ def extract_joined_data(last_load_time=None, limit: int | None = None) -> pd.Dat
         u.createdAt AS user_created,
         u.updatedAt AS user_updated,
 
+        p.id as product_id,
         p.productCode,
         p.category,
         p.description,
