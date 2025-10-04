@@ -8,8 +8,9 @@ from .source_models import User, Product, Order, OrderItem, Rider, Courier
 
 def extract_all_tables(
     last_load_times: Dict[str, str] | None = None,
+    limit: int | None = None,
 ) -> Dict[str, pd.DataFrame]:
-    """Extract source tables into DataFrames, optionally filtered by last load times"""
+    """Extract source tables into DataFrames, optionally filtered by last load times and limit for testing."""
     engine = get_source_engine()
     last_load_times = last_load_times or {}
 
@@ -26,19 +27,19 @@ def extract_all_tables(
     results = {}
     for key, (model, table_name) in table_mapping.items():
         last_time = last_load_times.get(table_name)
-        if last_time:
-            print(f"📥 Incremental load for {key} since {last_time}")
-        else:
-            print(f"📥 Full load for {key}")
+        print(f"📥 {'Incremental' if last_time else 'Full'} load for {key}")
 
-        results[key] = extract_table(engine, model, last_time)
-        print(f"✓ Extracted {len(results[key])} rows from {key}")
+        df = extract_table(engine, model, last_time, limit=limit)
+        print(f"✓ Extracted {len(df)} rows from {key}")
+        results[key] = df
 
     return results
 
 
-def extract_table(engine, model_class, last_load_time=None) -> pd.DataFrame:
-    """Extract a single table with optional incremental filter"""
+def extract_table(
+    engine, model_class, last_load_time=None, limit: int | None = None
+) -> pd.DataFrame:
+    """Extract a single table with optional incremental filter and limit for testing."""
     try:
         query = select(model_class)
         if last_load_time:
@@ -55,6 +56,10 @@ def extract_table(engine, model_class, last_load_time=None) -> pd.DataFrame:
 
             query = query.where(model_class.updatedAt > last_load_time)
 
+        # Apply limit if specified
+        if limit is not None and limit > 0:
+            query = query.limit(limit)
+
         df = pd.read_sql(query, engine)
         if df.empty:
             print(f"⚠️ No data found for {model_class.__tablename__}")
@@ -65,7 +70,7 @@ def extract_table(engine, model_class, last_load_time=None) -> pd.DataFrame:
         raise
 
 
-def extract_joined_data(last_load_time=None) -> pd.DataFrame:
+def extract_joined_data(last_load_time=None, limit: int | None = None) -> pd.DataFrame:
     """Extract order data with related info, optionally incremental"""
     engine = get_source_engine()
 
@@ -145,6 +150,10 @@ def extract_joined_data(last_load_time=None) -> pd.DataFrame:
             params["ts"] = last_load_time
 
     query += " ORDER BY o.id, oi.ProductId"
+
+    # Apply limit if specified
+    if limit is not None and limit > 0:
+        query += f" LIMIT {limit}"
 
     try:
         df = pd.read_sql(query, engine, params=params)
