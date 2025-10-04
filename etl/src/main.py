@@ -33,8 +33,8 @@ def run_etl():
         logger.info(f"📅 Last load times: {last_load_times}")
 
         # 2️⃣ Extract
-        extracted = extract_all_tables(last_load_times, limit=1000)
-        facts_df = extract_joined_data(last_load_times.get("FactSales"), limit=1000)
+        extracted = extract_all_tables(last_load_times)
+        facts_df = extract_joined_data(last_load_times.get("FactSales"))
 
         # 3️⃣ Transform dimensions
         logger.info("🔄 Transforming dimension data...")
@@ -53,21 +53,21 @@ def run_etl():
             print(dim_users_df.dtypes)
             logger.info(f"📤 Upserting {len(dim_users_df)} → DimUsers")
             assert isinstance(dim_users_df, pd.DataFrame)
-            upsert("DimUsers", dim_users_df, pk="sourceId")
+            upsert("DimUsers", dim_users_df, conflict="sourceId")
 
         if not dim_products_df.empty:
             print(dim_products_df.head(20))
             print(dim_products_df.dtypes)
             logger.info(f"📤 Upserting {len(dim_products_df)} → DimProducts")
             assert isinstance(dim_products_df, pd.DataFrame)
-            upsert("DimProducts", dim_products_df, pk="sourceId")
+            upsert("DimProducts", dim_products_df, conflict="sourceId")
 
         if not dim_riders_df.empty:
             print(dim_riders_df.head(20))
             print(dim_riders_df.dtypes)
             logger.info(f"📤 Upserting {len(dim_riders_df)} → DimRiders")
             assert isinstance(dim_riders_df, pd.DataFrame)
-            upsert("DimRiders", dim_riders_df, pk="sourceId")
+            upsert("DimRiders", dim_riders_df, conflict="sourceId")
 
         # Create DimDate as needed
         dim_date_df = None
@@ -87,7 +87,7 @@ def run_etl():
                     "📅 No DimDate records found — generating date dimension..."
                 )
                 dim_date_df = generate_dim_date()
-                upsert("DimDate", dim_date_df, pk="fullDate")
+                upsert("DimDate", dim_date_df, conflict="fullDate")
                 logger.info(f"✅ Created DimDate with {len(dim_date_df)} records")
             else:
                 dim_date_df = existing_dim_date
@@ -101,17 +101,19 @@ def run_etl():
         if not facts_df.empty:
             fact_sales_df = transform_fact_sales(facts_df)
             logger.info(f"📤 Upserting {len(fact_sales_df)} → FactSales")
-            upsert("FactSales", fact_sales_df, pk="id")
+            upsert("FactSales", fact_sales_df, conflict="id")
 
         # 6️⃣ Update ETLControl
         logger.info("📝 Updating ETL metadata...")
-        for table_name, df in extracted.items():
-            if not df.empty:
-                new_time = df["updatedAt"].max()
-
-                assert isinstance(new_time, datetime)
-                update_last_load_time(table_name, new_time)
-                logger.info(f"🕒 Updated {table_name} lastLoadTime → {new_time}")
+        for table_name in [
+            "DimUsers",
+            "DimDate",
+            "DimRiders",
+            "DimProducts",
+            "FactSales",
+        ]:
+            update_last_load_time(table_name, start_time)
+            logger.info(f"🕒 Updated {table_name} lastLoadTime → {start_time}")
 
         duration = (datetime.now() - start_time).total_seconds()
         logger.info(f"✅ ETL pipeline completed in {duration:.2f} seconds")
