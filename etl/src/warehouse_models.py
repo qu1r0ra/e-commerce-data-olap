@@ -6,7 +6,7 @@ import enum
 
 
 class SourceSystem(enum.Enum):
-    MYSQL = "mysql"
+    MYSQL = "MySQL"
 
 
 class RiderVehicleType(enum.Enum):
