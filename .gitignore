@@ -1,13 +1,29 @@
-# Config
-.env
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# DB
-db/source/*.sql
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # ETL
+db/source/*.sql
 etl/.venv/
 etl/src/test/
-
-# Miscellaneous
-node_modules/
-TODO.md

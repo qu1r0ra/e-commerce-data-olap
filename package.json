@@ -1,25 +1,19 @@
 {
   "name": "e-commerce-data-olap",
-  "version": "1.0.0",
-  "description": "![title](./assets/readme/title.jpg)",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "gen:types": "npx supabase gen types typescript --project-id wcqnwgnxzsfkvpgcbfzk --schema public > db/warehouse/supabase-types.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "gen:types": "npx supabase gen types typescript --project-id wcqnwgnxzsfkvpgcbfzk --schema public > db/warehouse/supabase-types.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/qu1r0ra/e-commerce-data-olap.git"
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "npm:rolldown-vite@7.1.14"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/qu1r0ra/e-commerce-data-olap/issues"
-  },
-  "homepage": "https://github.com/qu1r0ra/e-commerce-data-olap#readme"
+  "overrides": {
+    "vite": "npm:rolldown-vite@7.1.14"
+  }
 }
