@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import date
-from src.warehouse_models import SourceSystem
+from .warehouse_models import SourceSystem
 
 
 def transform_dim_users(users_df: pd.DataFrame) -> pd.DataFrame | pd.Series:
@@ -82,8 +82,18 @@ def transform_dim_riders(
 ) -> pd.DataFrame | pd.Series:
     """Transform joined riders and couriers data into DimRiders"""
     new_df = riders_df.copy()
+
+    # Rename columns to avoid id collisions
+    new_df = new_df.rename(columns={"id": "riderId"})
+    couriers_df = couriers_df.rename(
+        columns={"id": "courierIdRef", "name": "courierName"}
+    )
+
     new_df = new_df.merge(
-        couriers_df[["id", "name"]], how="left", left_on="courierId", right_on="id"
+        couriers_df[["courierIdRef", "courierName"]],
+        how="left",
+        left_on="courierId",
+        right_on="courierIdRef",
     )
 
     new_df["firstName"] = new_df["firstName"].fillna("")
@@ -96,12 +106,12 @@ def transform_dim_riders(
         .str.title()
         .fillna("")
     )
-    new_df["courierName"] = new_df["name"].fillna("")
+    new_df["courierName"] = new_df["courierName"].fillna("")
     new_df["age"] = new_df["age"].fillna(0)
     new_df["gender"] = new_df["gender"].fillna("")
     new_df["createdAt"] = pd.to_datetime(new_df["createdAt"], errors="coerce")
     new_df["updatedAt"] = pd.to_datetime(new_df["updatedAt"], errors="coerce")
-    new_df["sourceId"] = new_df["id"]
+    new_df["sourceId"] = new_df["riderId"]
     new_df["sourceSystem"] = SourceSystem.MYSQL.value
 
     return new_df[
