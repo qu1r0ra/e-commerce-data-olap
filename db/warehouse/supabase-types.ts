@@ -56,16 +56,20 @@ export type Database = {
           name: string
           price: number
           productCode: string
+          sourceId: number
+          sourceSystem: Database["public"]["Enums"]["source_system"]
           updatedAt: string
         }
         Insert: {
           category?: string
-          createdAt?: string
+          createdAt: string
           description?: string | null
           id?: number
           name: string
           price: number
           productCode?: string
+          sourceId: number
+          sourceSystem?: Database["public"]["Enums"]["source_system"]
           updatedAt?: string
         }
         Update: {
@@ -76,6 +80,8 @@ export type Database = {
           name?: string
           price?: number
           productCode?: string
+          sourceId?: number
+          sourceSystem?: Database["public"]["Enums"]["source_system"]
           updatedAt?: string
         }
         Relationships: []
@@ -89,19 +95,23 @@ export type Database = {
           gender: string
           id: number
           lastName: string
+          sourceId: number
+          sourceSystem: Database["public"]["Enums"]["source_system"]
           updatedAt: string
-          vehicleType: string
+          vehicleType: Database["public"]["Enums"]["rider_vehicle_type"]
         }
         Insert: {
           age: number
           courierName?: string
-          createdAt?: string
+          createdAt: string
           firstName?: string
           gender?: string
           id?: number
           lastName?: string
+          sourceId: number
+          sourceSystem?: Database["public"]["Enums"]["source_system"]
           updatedAt?: string
-          vehicleType?: string
+          vehicleType: Database["public"]["Enums"]["rider_vehicle_type"]
         }
         Update: {
           age?: number
@@ -111,8 +121,10 @@ export type Database = {
           gender?: string
           id?: number
           lastName?: string
+          sourceId?: number
+          sourceSystem?: Database["public"]["Enums"]["source_system"]
           updatedAt?: string
-          vehicleType?: string
+          vehicleType?: Database["public"]["Enums"]["rider_vehicle_type"]
         }
         Relationships: []
       }
@@ -126,18 +138,22 @@ export type Database = {
           gender: string
           id: number
           lastName: string
+          sourceId: number
+          sourceSystem: Database["public"]["Enums"]["source_system"]
           updatedAt: string
         }
         Insert: {
           city: string
-          country?: string
-          createdAt?: string
+          country: string
+          createdAt: string
           dateOfBirth: string
-          firstName?: string
-          gender?: string
+          firstName: string
+          gender: string
           id?: number
-          lastName?: string
-          updatedAt?: string
+          lastName: string
+          sourceId: number
+          sourceSystem?: Database["public"]["Enums"]["source_system"]
+          updatedAt: string
         }
         Update: {
           city?: string
@@ -148,7 +164,24 @@ export type Database = {
           gender?: string
           id?: number
           lastName?: string
+          sourceId?: number
+          sourceSystem?: Database["public"]["Enums"]["source_system"]
           updatedAt?: string
+        }
+        Relationships: []
+      }
+      ETLControl: {
+        Row: {
+          lastLoadTime: string
+          tableName: string
+        }
+        Insert: {
+          lastLoadTime: string
+          tableName: string
+        }
+        Update: {
+          lastLoadTime?: string
+          tableName?: string
         }
         Relationships: []
       }
@@ -160,15 +193,19 @@ export type Database = {
           id: number
           productId: number
           quantitySold: number
+          sourceId: number
+          sourceSystem: Database["public"]["Enums"]["source_system"]
           userId: number
         }
         Insert: {
-          createdAt?: string
+          createdAt: string
           deliveryDateId: number
           deliveryRiderId: number
           id?: number
           productId: number
           quantitySold: number
+          sourceId: number
+          sourceSystem?: Database["public"]["Enums"]["source_system"]
           userId: number
         }
         Update: {
@@ -178,16 +215,11 @@ export type Database = {
           id?: number
           productId?: number
           quantitySold?: number
+          sourceId?: number
+          sourceSystem?: Database["public"]["Enums"]["source_system"]
           userId?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "FactSales_deliveryDateId_fkey"
-            columns: ["deliveryDateId"]
-            isOneToOne: false
-            referencedRelation: "DimDate"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "FactSales_deliveryRiderId_fkey"
             columns: ["deliveryRiderId"]
@@ -219,7 +251,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      rider_vehicle_type: "Motorcycle" | "Bicycle" | "Tricycle" | "Car"
+      source_system: "MySQL"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -346,6 +379,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      rider_vehicle_type: ["Motorcycle", "Bicycle", "Tricycle", "Car"],
+      source_system: ["MySQL"],
+    },
   },
 } as const
