@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 EXTRACT_LIMIT = None
 UPSERT_BATCH_SIZE = 20000
-UPSERT_WAIT_SEC = 2.0
+UPSERT_WAIT_SEC = 1.0
 
 
 def run_etl():
@@ -90,6 +90,7 @@ def run_etl():
                 dim_riders_df,
                 conflict="sourceId",
                 batch_size=UPSERT_BATCH_SIZE,
+                wait_seconds=UPSERT_WAIT_SEC,
             )
 
         # Create DimDate as needed
