@@ -1,9 +1,9 @@
 import pandas as pd
-import json
 from datetime import date
 from .db import get_supabase_client
 from .warehouse_models import SourceSystem
 from .load import upsert
+from .utils.supabase_utils import fetch_all_rows
 
 
 def parse_date(value):
@@ -175,17 +175,14 @@ def transform_fact_sales(joined_df: pd.DataFrame) -> pd.DataFrame:
     Fetches DimDate from the warehouse and maps deliveryDate to deliveryDateId.
     Assumes dimension data have already been loaded.
     """
-    supabase_client = get_supabase_client()
     new_df = joined_df.copy()
 
     try:
-        # Fetch DimDate table from Supabase
-        dim_date_data = (
-            supabase_client.table("DimDate").select("*", count="exact").execute()
-        )
+        # Fetch DimDate table from Supabase using pagination
+        dim_date_records = fetch_all_rows("DimDate")
 
         # If no data is returned, generate and upload a new DimDate
-        if not dim_date_data.data:
+        if not dim_date_records:
             print("📅 No DimDate found — generating new one...")
 
             dim_date_df = generate_dim_date()
@@ -193,7 +190,7 @@ def transform_fact_sales(joined_df: pd.DataFrame) -> pd.DataFrame:
             print(f"✅ Created DimDate with {len(dim_date_df)} records")
         else:
             # Convert the returned records (list of dicts) to a DataFrame
-            dim_date_df = pd.DataFrame(dim_date_data.data)
+            dim_date_df = pd.DataFrame(dim_date_records)
             print(f"📅 Loaded existing DimDate ({len(dim_date_df)} records)")
 
     except Exception as e:
@@ -211,9 +208,11 @@ def transform_fact_sales(joined_df: pd.DataFrame) -> pd.DataFrame:
         left_on="deliveryDate",
         right_on="fullDate",
     )
-    # print(f"\n\n\nTHIS IS THE NEW DF:\n{new_df}\n\n\n")
-    # new_df.rename(columns={"id": "deliveryDateId"}, inplace=True)
-    # print(f"\n\n\nTHIS IS THE NEW DF:\n{new_df}\n\n\n")
+
+    # Debugging!
+    # print(
+    #     f"\n\nTHIS IS THE NEW DF:\n{new_df[["id", "deliveryDate", "fullDate"]].head(20)}\n\n"
+    # )
 
     new_df["deliveryDateId"] = new_df["id"].fillna(0).astype(int)
     new_df["deliveryRiderId"] = new_df["deliveryRiderId"].fillna(0).astype(int)

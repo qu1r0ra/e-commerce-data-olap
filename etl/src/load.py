@@ -5,7 +5,7 @@ from datetime import datetime
 from src.db import get_supabase_client
 
 
-def get_last_load_time(table_name: str):
+def get_last_load_time(table_name: str) -> None:
     """Fetch the last load time for a given table from ETLControl."""
     supabase = get_supabase_client()
     try:
@@ -16,8 +16,6 @@ def get_last_load_time(table_name: str):
             .execute()
         )
         print(response)
-        # data = response.get("lastLoadTime", [])
-        # return data[0]["lastLoadTime"] if data else None
     except Exception as e:
         raise RuntimeError(f"Failed to get last load time for {table_name}: {e}")
 

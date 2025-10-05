@@ -10,24 +10,38 @@ def extract_all_tables(
     last_load_times: Dict[str, str] | None = None,
     limit: int | None = None,
 ) -> Dict[str, pd.DataFrame]:
-    """Extract source tables into DataFrames, optionally filtered by last load times and limit for testing."""
+    """
+    Extract source tables into DataFrames.
+    Incremental extraction depends on the last load times of the corresponding warehouse tables.
+    """
     engine = get_source_engine()
     last_load_times = last_load_times or {}
 
-    # Consistent table mapping to avoid name mismatches
-    table_mapping = {
-        "users": (User, "Users"),
-        "products": (Product, "Products"),
-        "orders": (Order, "Orders"),
-        "order_items": (OrderItem, "OrderItems"),
-        "riders": (Rider, "Riders"),
-        "couriers": (Courier, "Couriers"),
+    # Map source tables to their controlling warehouse table
+    dependency_mapping = {
+        "users": ("Users", "DimUsers"),
+        "riders": ("Riders", "DimRiders"),
+        "couriers": ("Couriers", "DimRiders"),
+        "products": ("Products", "DimProducts"),
+        "orders": ("Orders", "FactSales"),
+        "order_items": ("OrderItems", "FactSales"),
     }
 
     results = {}
-    for key, (model, table_name) in table_mapping.items():
-        last_time = last_load_times.get(table_name)
-        print(f"📥 {'Incremental' if last_time else 'Full'} load for {key}")
+    for key, (source_name, warehouse_table) in dependency_mapping.items():
+        last_time = last_load_times.get(warehouse_table)
+        print(
+            f"📥 {'Incremental' if last_time else 'Full'} load for {key} (→ {warehouse_table})"
+        )
+
+        model = {
+            "users": User,
+            "products": Product,
+            "orders": Order,
+            "order_items": OrderItem,
+            "riders": Rider,
+            "couriers": Courier,
+        }[key]
 
         df = extract_table(engine, model, last_time, limit=limit)
         print(f"✓ Extracted {len(df)} rows from {key}")
