@@ -29,7 +29,7 @@ def get_last_load_times() -> dict:
 def upsert(
     table_name: str,
     df: pd.DataFrame,
-    conflict: str = "id",
+    conflict: str,
     batch_size: int = 20000,
     wait_seconds: float = 2.0,
 ) -> None:
@@ -43,7 +43,7 @@ def upsert(
     df = df.copy()
     for col in df.columns:
         if pd.api.types.is_datetime64_any_dtype(df[col]):
-            df[col] = df[col].astype(str)  # converts to ISO-like string
+            df[col] = df[col].astype(str)
         elif pd.api.types.is_numeric_dtype(df[col]):
             df[col] = df[col].apply(
                 lambda x: (
@@ -54,14 +54,15 @@ def upsert(
 
     records = df.to_dict(orient="records")
 
+    # Upsert records by batch
     for i in range(0, len(records), batch_size):
         batch = records[i : i + batch_size]
         try:
             supabase.table(table_name).upsert(batch, on_conflict=conflict).execute()
-            print(f"✓ Upserted batch {i}-{i + len(batch) - 1} into {table_name}")
+            print(f"\tUpserted batch {i}-{i + len(batch) - 1} into {table_name}")
         except Exception as e:
             raise RuntimeError(
-                f"Upsert to {table_name} failed on batch {i}-{i + len(batch) - 1}: {e}"
+                f"\tUpsert to {table_name} failed on batch {i}-{i + len(batch) - 1}: {e}"
             )
 
         time.sleep(wait_seconds)
