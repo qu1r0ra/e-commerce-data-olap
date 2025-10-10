@@ -1,6 +1,5 @@
 import pandas as pd
 from datetime import date
-from .db import get_supabase_client
 from .warehouse_models import SourceSystem
 from .load import upsert
 from .utils.supabase_utils import fetch_all_rows
@@ -181,7 +180,7 @@ def transform_fact_sales(joined_df: pd.DataFrame) -> pd.DataFrame:
             print("\tNo DimDate found - generating new one...")
 
             dim_date_df = generate_dim_date()
-            upsert("DimDate", dim_date_df)
+            upsert("DimDate", dim_date_df, "fullDate")
             print(f"\tCreated DimDate with {len(dim_date_df)} records")
         else:
             dim_date_df = pd.DataFrame(dim_date_records)

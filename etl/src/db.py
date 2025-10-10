@@ -71,6 +71,6 @@ def ping_warehouse() -> None:
     try:
         response = supabase.table("ETLControl").select("tableName").limit(1).execute()
         print(response)
-        print("✅ Supabase connection successful!")
+        print("\tSupabase connection successful!")
     except Exception as e:
-        raise ConnectionError(f"❌ Supabase connection failed: {e}")
+        raise ConnectionError(f"\tSupabase connection failed: {e}")
