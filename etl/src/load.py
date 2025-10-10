@@ -3,25 +3,44 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from src.db import get_supabase_client
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-def get_last_load_time(table_name: str) -> None:
+def get_last_load_time(table_name: str) -> datetime | None:
     """Fetch the last load time for a given table from ETLControl."""
     supabase = get_supabase_client()
     try:
-        response = (
+        res = (
             supabase.table("ETLControl")
             .select("lastLoadTime")
             .eq("tableName", table_name)
+            .limit(1)
             .execute()
         )
-        print(response)
+
+        data = getattr(res, "data", None)
+        error = getattr(res, "error", None)
+
+        if error:
+            logger.error(
+                f"Supabase error fetching last load time for {table_name}: {error}"
+            )
+            return None
+
+        if not data:
+            return None
+
+        row = data[0] if isinstance(data, list) else data
+        return row["lastLoadTime"]
+
     except Exception as e:
         raise RuntimeError(f"Failed to get last load time for {table_name}: {e}")
 
 
-def get_last_load_times() -> dict:
-    """Fetch last load times for all key tables."""
+def get_last_load_times() -> dict[str, datetime | None]:
+    """Fetch last load times for all data warehouse tables."""
     tables = ["DimUsers", "DimDate", "DimRiders", "DimProducts", "FactSales"]
     return {t: get_last_load_time(t) for t in tables}
 
