@@ -1,4 +1,4 @@
-# Number of entries per table
+-- Number of entries per table
 
 SELECT 		COUNT(*)
 FROM		Couriers;
@@ -18,7 +18,16 @@ FROM		Riders;
 SELECT 		COUNT(*)
 FROM		Users;
 
-# Entries per table
+
+-- Random rows to compare to the data warehouse
+
+SELECT *
+FROM YourTableName
+ORDER BY RAND()
+LIMIT 5;
+
+
+-- Entries per table
 
 SELECT		*
 FROM		Couriers;
