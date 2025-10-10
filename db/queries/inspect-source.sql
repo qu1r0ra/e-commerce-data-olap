@@ -1,4 +1,4 @@
-# Nummber of entries per table
+# Number of entries per table
 
 SELECT 		COUNT(*)
 FROM		Couriers;
