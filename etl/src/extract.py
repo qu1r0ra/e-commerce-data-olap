@@ -7,7 +7,7 @@ from .source_models import User, Product, Order, OrderItem, Rider, Courier
 
 
 def extract_all_tables(
-    last_load_times: Dict[str, str] | None = None,
+    last_load_times: Dict[str, datetime | None] = {},
     limit: int | None = None,
 ) -> Dict[str, pd.DataFrame]:
     """
@@ -15,9 +15,8 @@ def extract_all_tables(
     Incremental extraction depends on the last load times of the corresponding warehouse tables.
     """
     engine = get_source_engine()
-    last_load_times = last_load_times or {}
 
-    # Map source tables to their controlling warehouse table
+    # Map source tables to one of their destination warehouse tables (if any)
     dependency_mapping = {
         "users": ("Users", "DimUsers"),
         "riders": ("Riders", "DimRiders"),
@@ -31,7 +30,7 @@ def extract_all_tables(
     for key, (_, warehouse_table) in dependency_mapping.items():
         last_time = last_load_times.get(warehouse_table)
         print(
-            f"{'Incremental' if last_time else 'Full'} load for {key} (→ {warehouse_table})"
+            f"{'\tIncremental' if last_time else 'Full'} load for {key} (→ {warehouse_table})"
         )
 
         model = {
@@ -161,10 +160,9 @@ def extract_joined_data(last_load_time=None, limit: int | None = None) -> pd.Dat
                 last_load_time = None
 
         if last_load_time:
-            query += " AND (o.updatedAt > :ts OR oi.updatedAt > :ts)"
-            params["ts"] = last_load_time
+            query += f" AND (o.updatedAt > '{last_load_time}' OR oi.updatedAt > '{last_load_time}')"
 
-    query += " ORDER BY o.id, oi.ProductId"
+    query += " ORDER BY order_id, product_id_ref"
 
     # Apply limit if specified
     if limit is not None and limit > 0:
