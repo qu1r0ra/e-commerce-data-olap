@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 import pandas as pd
-from .db import get_source_engine, get_supabase_client
+from .db import get_source_engine, ping_source, get_supabase_client, ping_warehouse
 from .extract import extract_all_tables, extract_joined_data
 from .transform import (
     transform_dim_users,
@@ -11,7 +11,6 @@ from .transform import (
     generate_dim_date,
 )
 from .load import get_last_load_times, upsert, update_last_load_time
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,18 +24,23 @@ def run_etl():
     logger.info("Starting ETL pipeline...")
     start_time = datetime.now()
 
-    source_engine = get_source_engine()
-    print("Source engine connected!")
+    # Test source connection
+    get_source_engine()
+    ping_source()
+    logger.info("Source engine connected!")
 
+    # Test warehouse connection
     supabase_client = get_supabase_client()
-    print("Supabase client connected!")
+    ping_warehouse()
+    logger.info("Supabase client connected!")
 
+    # ETL pipeline
     try:
-        # 1. Get last load times
+        # 1. Get last load times (for incremental loading)
         last_load_times = get_last_load_times()
         logger.info(f"Last load times: {last_load_times}")
 
-        # 2. Extract
+        # 2. Extract data
         extracted = extract_all_tables(last_load_times, limit=EXTRACT_LIMIT)
         facts_df = extract_joined_data(
             last_load_times.get("FactSales"), limit=EXTRACT_LIMIT
