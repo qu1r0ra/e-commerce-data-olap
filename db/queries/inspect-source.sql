@@ -1,4 +1,24 @@
-# Inspect the tables
+# Nummber of entries per table
+
+SELECT 		COUNT(*)
+FROM		Couriers;
+
+SELECT 		COUNT(*)
+FROM		OrderItems;
+
+SELECT 		COUNT(*)
+FROM		Orders;
+
+SELECT 		COUNT(*)
+FROM		Products;
+
+SELECT 		COUNT(*)
+FROM		Riders;
+
+SELECT 		COUNT(*)
+FROM		Users;
+
+# Entries per table
 
 SELECT		*
 FROM		Couriers;
