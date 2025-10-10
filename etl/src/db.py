@@ -17,9 +17,7 @@ _source_engine: Engine | None = None
 _supabase_client: Client | None = None
 
 
-# ----------------------
-# SOURCE (MySQL)
-# ----------------------
+# Source (MySQL)
 def get_source_engine() -> Engine:
     global _source_engine
     if _source_engine is None:
@@ -47,9 +45,7 @@ def ping_source() -> None:
         conn.execute(text("SELECT 1"))
 
 
-# ----------------------
-# WAREHOUSE (Supabase/Postgres)
-# ----------------------
+# Warehouse (Postgres)
 def get_supabase_client():
     """
     Create or return a cached Supabase client for the warehouse.
@@ -75,6 +71,6 @@ def ping_warehouse() -> None:
     try:
         response = supabase.table("ETLControl").select("tableName").limit(1).execute()
         print(response)
-        print("✅ Supabase connection successful!")
+        print("\tSupabase connection successful!")
     except Exception as e:
-        raise ConnectionError(f"❌ Supabase connection failed: {e}")
+        raise ConnectionError(f"\tSupabase connection failed: {e}")

@@ -3,25 +3,44 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from src.db import get_supabase_client
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-def get_last_load_time(table_name: str) -> None:
+def get_last_load_time(table_name: str) -> datetime | None:
     """Fetch the last load time for a given table from ETLControl."""
     supabase = get_supabase_client()
     try:
-        response = (
+        res = (
             supabase.table("ETLControl")
             .select("lastLoadTime")
             .eq("tableName", table_name)
+            .limit(1)
             .execute()
         )
-        print(response)
+
+        data = getattr(res, "data", None)
+        error = getattr(res, "error", None)
+
+        if error:
+            logger.error(
+                f"Supabase error fetching last load time for {table_name}: {error}"
+            )
+            return None
+
+        if not data:
+            return None
+
+        row = data[0] if isinstance(data, list) else data
+        return row["lastLoadTime"]
+
     except Exception as e:
         raise RuntimeError(f"Failed to get last load time for {table_name}: {e}")
 
 
-def get_last_load_times() -> dict:
-    """Fetch last load times for all key tables."""
+def get_last_load_times() -> dict[str, datetime | None]:
+    """Fetch last load times for all data warehouse tables."""
     tables = ["DimUsers", "DimDate", "DimRiders", "DimProducts", "FactSales"]
     return {t: get_last_load_time(t) for t in tables}
 
@@ -29,7 +48,7 @@ def get_last_load_times() -> dict:
 def upsert(
     table_name: str,
     df: pd.DataFrame,
-    conflict: str = "id",
+    conflict: str,
     batch_size: int = 20000,
     wait_seconds: float = 2.0,
 ) -> None:
@@ -43,7 +62,7 @@ def upsert(
     df = df.copy()
     for col in df.columns:
         if pd.api.types.is_datetime64_any_dtype(df[col]):
-            df[col] = df[col].astype(str)  # converts to ISO-like string
+            df[col] = df[col].astype(str)
         elif pd.api.types.is_numeric_dtype(df[col]):
             df[col] = df[col].apply(
                 lambda x: (
@@ -54,14 +73,15 @@ def upsert(
 
     records = df.to_dict(orient="records")
 
+    # Upsert records by batch
     for i in range(0, len(records), batch_size):
         batch = records[i : i + batch_size]
         try:
             supabase.table(table_name).upsert(batch, on_conflict=conflict).execute()
-            print(f"✓ Upserted batch {i}-{i + len(batch) - 1} into {table_name}")
+            print(f"\tUpserted batch {i}-{i + len(batch) - 1} into {table_name}")
         except Exception as e:
             raise RuntimeError(
-                f"Upsert to {table_name} failed on batch {i}-{i + len(batch) - 1}: {e}"
+                f"\tUpsert to {table_name} failed on batch {i}-{i + len(batch) - 1}: {e}"
             )
 
         time.sleep(wait_seconds)

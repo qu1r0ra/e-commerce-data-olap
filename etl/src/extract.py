@@ -7,7 +7,7 @@ from .source_models import User, Product, Order, OrderItem, Rider, Courier
 
 
 def extract_all_tables(
-    last_load_times: Dict[str, str] | None = None,
+    last_load_times: Dict[str, datetime | None] = {},
     limit: int | None = None,
 ) -> Dict[str, pd.DataFrame]:
     """
@@ -15,9 +15,8 @@ def extract_all_tables(
     Incremental extraction depends on the last load times of the corresponding warehouse tables.
     """
     engine = get_source_engine()
-    last_load_times = last_load_times or {}
 
-    # Map source tables to their controlling warehouse table
+    # Map source tables to one of their destination warehouse tables (if any)
     dependency_mapping = {
         "users": ("Users", "DimUsers"),
         "riders": ("Riders", "DimRiders"),
@@ -28,10 +27,10 @@ def extract_all_tables(
     }
 
     results = {}
-    for key, (source_name, warehouse_table) in dependency_mapping.items():
+    for key, (_, warehouse_table) in dependency_mapping.items():
         last_time = last_load_times.get(warehouse_table)
         print(
-            f"📥 {'Incremental' if last_time else 'Full'} load for {key} (→ {warehouse_table})"
+            f"{'\tIncremental' if last_time else 'Full'} load for {key} (→ {warehouse_table})"
         )
 
         model = {
@@ -44,7 +43,7 @@ def extract_all_tables(
         }[key]
 
         df = extract_table(engine, model, last_time, limit=limit)
-        print(f"✓ Extracted {len(df)} rows from {key}")
+        print(f"\tExtracted {len(df)} rows from {key}")
         results[key] = df
 
     return results
@@ -63,9 +62,9 @@ def extract_table(
                     last_load_time = datetime.fromisoformat(last_load_time)
                 except ValueError as e:
                     print(
-                        f"⚠️ Invalid timestamp format for {model_class.__tablename__}: {last_load_time}"
+                        f"Invalid timestamp format for {model_class.__tablename__}: {last_load_time}"
                     )
-                    print(f"⚠️ Error: {e}. Falling back to full extract.")
+                    print(f"Error: {e}. Falling back to full extract.")
                     return pd.read_sql(query, engine)
 
             query = query.where(model_class.updatedAt > last_load_time)
@@ -76,11 +75,11 @@ def extract_table(
 
         df = pd.read_sql(query, engine)
         if df.empty:
-            print(f"⚠️ No data found for {model_class.__tablename__}")
+            print(f"No data found for {model_class.__tablename__}")
         return df
 
     except Exception as e:
-        print(f"❌ Error extracting {model_class.__tablename__}: {e}")
+        print(f"Error extracting {model_class.__tablename__}: {e}")
         raise
 
 
@@ -156,15 +155,14 @@ def extract_joined_data(last_load_time=None, limit: int | None = None) -> pd.Dat
             try:
                 last_load_time = datetime.fromisoformat(last_load_time)
             except ValueError as e:
-                print(f"⚠️ Invalid timestamp format for joined data: {last_load_time}")
-                print(f"⚠️ Error: {e}. Proceeding with full extract.")
+                print(f"Invalid timestamp format for joined data: {last_load_time}")
+                print(f"Error: {e}. Proceeding with full extract.")
                 last_load_time = None
 
         if last_load_time:
-            query += " AND (o.updatedAt > :ts OR oi.updatedAt > :ts)"
-            params["ts"] = last_load_time
+            query += f" AND (o.updatedAt > '{last_load_time}' OR oi.updatedAt > '{last_load_time}')"
 
-    query += " ORDER BY o.id, oi.ProductId"
+    query += " ORDER BY order_id, product_id_ref"
 
     # Apply limit if specified
     if limit is not None and limit > 0:
@@ -173,12 +171,12 @@ def extract_joined_data(last_load_time=None, limit: int | None = None) -> pd.Dat
     try:
         df = pd.read_sql(query, engine, params=params)
         if df.empty:
-            print("⚠️ No joined order data found")
+            print("No joined order data found")
         else:
-            print(f"✓ Extracted {len(df)} joined order records")
+            print(f"Extracted {len(df)} joined order records")
         return df
     except Exception as e:
-        print(f"❌ Error extracting joined data: {e}")
+        print(f"Error extracting joined data: {e}")
         raise
 
 
@@ -194,9 +192,9 @@ def get_table_counts() -> Dict[str, int]:
                 result = conn.execute(text(f"SELECT COUNT(*) FROM {table}"))
                 count = result.scalar_one()
                 counts[table] = count
-                print(f"📊 {table}: {count:,} rows")
+                print(f"{table}: {count:,} rows")
     except Exception as e:
-        print(f"❌ Error getting table counts: {e}")
+        print(f"Error getting table counts: {e}")
         raise
 
     return counts

@@ -1,6 +1,5 @@
 import pandas as pd
 from datetime import date
-from .db import get_supabase_client
 from .warehouse_models import SourceSystem
 from .load import upsert
 from .utils.supabase_utils import fetch_all_rows
@@ -18,7 +17,7 @@ def parse_date(value):
     return pd.NaT
 
 
-def transform_dim_users(users_df: pd.DataFrame) -> pd.DataFrame | pd.Series:
+def transform_dim_users(users_df: pd.DataFrame) -> pd.DataFrame:
     """Transform Users table into DimUsers"""
     new_df = users_df.copy()
 
@@ -56,7 +55,7 @@ def transform_dim_users(users_df: pd.DataFrame) -> pd.DataFrame | pd.Series:
     ]
 
 
-def transform_dim_products(products_df: pd.DataFrame) -> pd.DataFrame | pd.Series:
+def transform_dim_products(products_df: pd.DataFrame) -> pd.DataFrame:
     """Transform Products table into DimProducts"""
     new_df = products_df.copy()
 
@@ -94,7 +93,7 @@ def transform_dim_products(products_df: pd.DataFrame) -> pd.DataFrame | pd.Serie
 
 def transform_dim_riders(
     riders_df: pd.DataFrame, couriers_df: pd.DataFrame
-) -> pd.DataFrame | pd.Series:
+) -> pd.DataFrame:
     """Transform joined riders and couriers data into DimRiders"""
     new_df = riders_df.copy()
 
@@ -170,28 +169,22 @@ def generate_dim_date(
 
 def transform_fact_sales(joined_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Transform raw order/order_item data into FactSales table.
-
-    Fetches DimDate from the warehouse and maps deliveryDate to deliveryDateId.
-    Assumes dimension data have already been loaded.
+    Transform joined source data into the FactSales table.
     """
     new_df = joined_df.copy()
 
     try:
-        # Fetch DimDate table from Supabase using pagination
         dim_date_records = fetch_all_rows("DimDate")
 
-        # If no data is returned, generate and upload a new DimDate
         if not dim_date_records:
-            print("📅 No DimDate found — generating new one...")
+            print("\tNo DimDate found - generating new one...")
 
             dim_date_df = generate_dim_date()
-            upsert("DimDate", dim_date_df)
-            print(f"✅ Created DimDate with {len(dim_date_df)} records")
+            upsert("DimDate", dim_date_df, "fullDate")
+            print(f"\tCreated DimDate with {len(dim_date_df)} records")
         else:
-            # Convert the returned records (list of dicts) to a DataFrame
             dim_date_df = pd.DataFrame(dim_date_records)
-            print(f"📅 Loaded existing DimDate ({len(dim_date_df)} records)")
+            print(f"\tLoaded existing DimDate ({len(dim_date_df)} records)")
 
     except Exception as e:
         raise RuntimeError(f"Failed to fetch DimDate from warehouse: {e}")
@@ -200,7 +193,6 @@ def transform_fact_sales(joined_df: pd.DataFrame) -> pd.DataFrame:
 
     dim_date_df["fullDate"] = pd.to_datetime(dim_date_df["fullDate"], errors="coerce")
 
-    # Map deliveryDate to DimDate
     new_df["deliveryDate"] = new_df["deliveryDate"].apply(parse_date)
     new_df = new_df.merge(
         dim_date_df[["fullDate", "id"]],
@@ -208,11 +200,6 @@ def transform_fact_sales(joined_df: pd.DataFrame) -> pd.DataFrame:
         left_on="deliveryDate",
         right_on="fullDate",
     )
-
-    # Debugging!
-    # print(
-    #     f"\n\nTHIS IS THE NEW DF:\n{new_df[["id", "deliveryDate", "fullDate"]].head(20)}\n\n"
-    # )
 
     new_df["deliveryDateId"] = new_df["id"].fillna(0).astype(int)
     new_df["deliveryRiderId"] = new_df["deliveryRiderId"].fillna(0).astype(int)
