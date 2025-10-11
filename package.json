@@ -4,16 +4,36 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev:frontend": "parcel index.html",
+    "dev:backend": "npx tsx watch src/server.ts",
+    "dev": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
+    "build": "parcel build index.html",
     "gen:types": "npx supabase gen types typescript --project-id wcqnwgnxzsfkvpgcbfzk --schema public > db/warehouse/supabase-types.ts"
   },
   "devDependencies": {
-    "typescript": "~5.9.3",
-    "vite": "npm:rolldown-vite@7.1.14"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.7.1",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "parcel": "^2.16.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3"
   },
   "overrides": {
     "vite": "npm:rolldown-vite@7.1.14"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.75.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
+    "chart.js": "^4.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   }
 }
