@@ -70,6 +70,91 @@ Includes a standardized folder structure, README layout, and common configuratio
 
 > [fill up]
 
+
+# Data Warehouse Schema Dimensions
+
+These are the dimensions and fact tables for our OLAP application.
+
+### `DimDate`
+This dimension table contains attributes related to specific dates.
+- `id`: `int8`
+- `fullDate`: `date`
+- `year`: `int2`
+- `month`: `int2`
+- `day`: `int2`
+- `monthName`: `varchar`
+- `dayOfTheWeek`: `varchar`
+- `quarter`: `varchar`
+
+***
+
+### `DimProducts`
+This dimension stores information about each product.
+- `id`: `int8`
+- `productCode`: `varchar`
+- `category`: `varchar`
+- `description`: `varchar`
+- `name`: `varchar`
+- `price`: `float8`
+- `createdAt`: `timestamp`
+- `updatedAt`: `timestamp`
+- `sourceId`: `int8`
+- `sourceSystem`: `source_system`
+
+***
+
+### `DimRiders`
+This dimension holds details about the delivery riders.
+- `id`: `int8`
+- `firstName`: `varchar`
+- `lastName`: `varchar`
+- `vehicleType`: `rider_vehicle_type`
+- `courierName`: `varchar`
+- `age`: `int2`
+- `gender`: `varchar`
+- `createdAt`: `timestamp`
+- `updatedAt`: `timestamp`
+- `sourceId`: `int8`
+- `sourceSystem`: `source_system`
+
+***
+
+### `DimUsers`
+This dimension contains information about registered users.
+- `id`: `int8`
+- `firstName`: `varchar`
+- `lastName`: `varchar`
+- `city`: `varchar`
+- `country`: `varchar`
+- `dateOfBirth`: `date`
+- `gender`: `varchar`
+- `createdAt`: `timestamp`
+- `updatedAt`: `timestamp`
+- `sourceId`: `int8`
+- `sourceSystem`: `source_system`
+
+***
+
+### `FactSales`
+This is the central fact table that records sales transactions.
+- `id`: `int8`
+- `userId`: `int8`
+- `deliveryDateId`: `int8`
+- `deliverRiderId`: `int8`
+- `productId`: `int8`
+- `quantitySold`: `int8`
+- `createdAt`: `timestamp`
+- `sourceId`: `int8`
+- `source_system`: `source_system`
+
+***
+
+### `ETLControl`
+This table is used for metadata to track the ETL (Extract, Transform, Load) process.
+- `tableName`: `text`
+- `lastLoadTime`: `timestamp`
+
+
 <!-- ### 4.3. Disclaimer
 
 > [!WARNING]

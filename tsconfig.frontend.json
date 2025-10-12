@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "moduleResolution": "bundler",
+    "noEmit": true
+  },
+  // this is what makes it only be used as a config for the frontend, the backend also has this
+  "include": [
+    "src/main.ts"
+  ]
+}
