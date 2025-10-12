@@ -221,6 +221,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "FactSales_deliveryDateId_fkey"
+            columns: ["deliveryDateId"]
+            isOneToOne: false
+            referencedRelation: "DimDate"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "FactSales_deliveryRiderId_fkey"
             columns: ["deliveryRiderId"]
             isOneToOne: false
