@@ -11,9 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
-#Parcel
-.parcel-cache
 
+# Parcel
+.parcel-cache
 
 # Editor directories and files
 .vscode/*
@@ -31,5 +31,5 @@ db/source/*.sql
 etl/.venv/
 etl/src/test/
 
-#for OLAP
+# OLAP
 .env
