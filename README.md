@@ -1,38 +1,31 @@
 # e-commerce-data-olap <!-- omit from toc -->
 
-![title](./readme/title.jpg)
+<!-- ![title](./readme/title.jpg) -->
 
 <!-- Refer to https://shields.io/badges for usage -->
 
-![Year, Term, Course](https://img.shields.io/badge/AY2526--T1-STADVDB-blue) ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Year, Term, Course](https://img.shields.io/badge/AY2526--T1-STADVDB-blue)
 
-A reusable GitHub repository template for programming projects.
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff) ![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=fff) ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=fff)
 
-Includes a standardized folder structure, README layout, and common configurations to speed up project setup and maintain consistency.
+An OLAP application that queries from generated e-commerce data stored in a Data Warehouse through ETL. Created for STADVDB (Advanced Database Systems).
 
 ## Table of Contents <!-- omit from toc -->
 
 - [1. Overview](#1-overview)
-  - [1.1. Topic 1](#11-topic-1)
-  - [1.2. Topic 2](#12-topic-2)
 - [2. Getting Started](#2-getting-started)
   - [2.1. Prerequisites](#21-prerequisites)
-  - [2.2. Installation](#22-installation)
-  - [2.3. Running the Project](#23-running-the-project)
-- [3. Usage](#3-usage)
-  - [3.1. Use Case 1](#31-use-case-1)
-  - [3.2. Use Case 2](#32-use-case-2)
-- [4. References](#4-references)
-  - [4.1. API](#41-api)
-  - [4.2. Q\&A](#42-qa)
+  - [2.2. Building](#22-building)
+  - [2.3. Running](#23-running)
+- [3. Data Warehouse Schema Dimensions](#3-data-warehouse-schema-dimensions)
+  - [3.1. DimDate](#31-dimdate)
+  - [3.2. DimProducts](#32-dimproducts)
+  - [3.3. DimRiders](#33-dimriders)
+  - [3.4. DimUsers](#34-dimusers)
+  - [3.5. FactSales](#35-factsales)
+  - [3.6. ETLControl](#36-etlcontrol)
 
 ## 1. Overview
-
-### 1.1. Topic 1
-
-> [fill up]
-
-### 1.2. Topic 2
 
 > [fill up]
 
@@ -42,41 +35,22 @@ Includes a standardized folder structure, README layout, and common configuratio
 
 > [fill up]
 
-### 2.2. Installation
+### 2.2. Building
 
 > [fill up]
 
-### 2.3. Running the Project
+### 2.3. Running
 
 > [fill up]
 
-## 3. Usage
-
-### 3.1. Use Case 1
-
-> [fill up]
-
-### 3.2. Use Case 2
-
-> [fill up]
-
-## 4. References
-
-### 4.1. API
-
-> [fill up]
-
-### 4.2. Q&A
-
-> [fill up]
-
-
-# Data Warehouse Schema Dimensions
+## 3. Data Warehouse Schema Dimensions
 
 These are the dimensions and fact tables for our OLAP application.
 
-### `DimDate`
+### 3.1. DimDate
+
 This dimension table contains attributes related to specific dates.
+
 - `id`: `int8`
 - `fullDate`: `date`
 - `year`: `int2`
@@ -86,10 +60,10 @@ This dimension table contains attributes related to specific dates.
 - `dayOfTheWeek`: `varchar`
 - `quarter`: `varchar`
 
-***
+### 3.2. DimProducts
 
-### `DimProducts`
 This dimension stores information about each product.
+
 - `id`: `int8`
 - `productCode`: `varchar`
 - `category`: `varchar`
@@ -101,10 +75,10 @@ This dimension stores information about each product.
 - `sourceId`: `int8`
 - `sourceSystem`: `source_system`
 
-***
+### 3.3. DimRiders
 
-### `DimRiders`
 This dimension holds details about the delivery riders.
+
 - `id`: `int8`
 - `firstName`: `varchar`
 - `lastName`: `varchar`
@@ -117,10 +91,10 @@ This dimension holds details about the delivery riders.
 - `sourceId`: `int8`
 - `sourceSystem`: `source_system`
 
-***
+### 3.4. DimUsers
 
-### `DimUsers`
 This dimension contains information about registered users.
+
 - `id`: `int8`
 - `firstName`: `varchar`
 - `lastName`: `varchar`
@@ -133,10 +107,10 @@ This dimension contains information about registered users.
 - `sourceId`: `int8`
 - `sourceSystem`: `source_system`
 
-***
+### 3.5. FactSales
 
-### `FactSales`
 This is the central fact table that records sales transactions.
+
 - `id`: `int8`
 - `userId`: `int8`
 - `deliveryDateId`: `int8`
@@ -147,18 +121,9 @@ This is the central fact table that records sales transactions.
 - `sourceId`: `int8`
 - `source_system`: `source_system`
 
-***
+### 3.6. ETLControl
 
-### `ETLControl`
 This table is used for metadata to track the ETL (Extract, Transform, Load) process.
+
 - `tableName`: `text`
 - `lastLoadTime`: `timestamp`
-
-
-<!-- ### 4.3. Disclaimer
-
-> [!WARNING]
->
-> ![ChatGPT](https://img.shields.io/badge/ChatGPT-74aa9c?logo=openai&logoColor=white) ![Claude](https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=white)
->
-> Parts of this project were generated or assisted by AI tools, including OpenAI's [ChatGPT](https://chatgpt.com/) and Anthropic's [Claude](https://www.anthropic.com/claude). While care has been taken to review and verify the generated outputs, it may still contain errors. Please review the code critically and contribute improvements where necessary. -->
