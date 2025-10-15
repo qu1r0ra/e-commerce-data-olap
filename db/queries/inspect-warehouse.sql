@@ -23,7 +23,7 @@ AND         dp."name" = <replace-with-sample>
 
 --- Query to check duplicates for Duplicate Data Check Testing (DDCT)
 
-SELECT      "sourceId", COUNT(*) duplicate_count
-FROM        <replace-with-sample>
-GROUP BY    <replace-with-sample>
+SELECT      "firstName", "lastName", "city", "dateOfBirth", COUNT(*) duplicate_count
+FROM        "DimUsers" du
+GROUP BY    du."firstName", du."lastName", du."city", du."dateOfBirth"
 HAVING      COUNT(*) > 1
