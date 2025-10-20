@@ -186,7 +186,7 @@ app.get('/api/sales-by-product', async (req, res) => {
 
 
 app.get('/api/rider-demographics', async (req, res) => {
-  const { query, courierName } = req.query;
+  const { query, courierName, gender } = req.query;
 
   try {
     if (query === 'couriers') {
@@ -194,7 +194,7 @@ app.get('/api/rider-demographics', async (req, res) => {
       // SELECT "courierName" FROM "DimRiders";
 
       if (error) throw error;
-      // The data might have duplicates (e.g., Grab, Grab, Lalamove).
+      // The data might have duplicates (e.g., JNT, JNT).
       // new set is a trick to get only the unique values.
       const uniqueCouriers = [...new Set(data.map(r => r.courierName).filter(Boolean))].sort();
       return res.json(uniqueCouriers);
@@ -208,12 +208,26 @@ app.get('/api/rider-demographics', async (req, res) => {
     }
 
     /*
-      SQL if courierName is Grab:
-      SELECT "vehicleType", "gender" FROM "DimRiders" WHERE "courierName" = 'Grab';
+      SQL if courierName is FEDEZ:
+      SELECT "vehicleType", "gender" FROM "DimRiders" WHERE "courierName" = 'FEDEZ';
 
       SQL if none
       SELECT "vehicleType", "gender" FROM "DimRiders";
     */
+
+    //adding gender now as per request
+    if (gender) {
+      console.log(`[Backend] Filtering by Gender: ${gender}`);
+      queryBuilder = queryBuilder.eq('gender', gender as string);
+    }
+
+    /*
+      SQL if courierName='FEDEZ' and gender='Male':
+      SELECT "vehicleType", "gender" FROM "DimRiders"
+      WHERE "courierName" = 'FEDEZ' AND "gender" = 'Male';
+    */
+
+
 
     const { data, error } = await queryBuilder;
     if (error) throw error;
@@ -221,11 +235,12 @@ app.get('/api/rider-demographics', async (req, res) => {
     // create combined keys like "Motorcycle (Male)".
     const ridersByGroup = data.reduce((acc, rider) => {
       const vehicle = rider.vehicleType || 'Unknown Vehicle';
-      const gender = rider.gender || 'Unknown Gender';
-      const key = `${vehicle} (${gender})`;
+      //removing but not deleting
+      // const gender = rider.gender || 'Unknown Gender';
+      // const key = `${vehicle} (${gender})`;
 
-      if (!acc[key]) acc[key] = 0;
-      acc[key] += 1; //count riders
+      if (!acc[vehicle]) acc[vehicle] = 0;
+      acc[vehicle] += 1;//count
       return acc;
     }, {} as Record<string, number>);
 

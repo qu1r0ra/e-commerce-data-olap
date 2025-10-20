@@ -9,7 +9,7 @@ export default function RiderDemographics() {
     const [couriers, setCouriers] = useState<string[]>([]);
 
     const [selectedCourier, setSelectedCourier] = useState<string>('');
-
+    const [selectedGender, setSelectedGender] = useState<string>('');
     const chartCanvas = useRef<HTMLCanvasElement>(null);
     const chartInstance = useRef<Chart | null>(null);
 
@@ -34,8 +34,10 @@ export default function RiderDemographics() {
             if (!chartCanvas.current) return;
 
             // better check in server.ts for endpoints, if the courier selected is empty that equates to === all
-            const endpoint = `http://localhost:3001/api/rider-demographics?courierName=${selectedCourier}`;
-            const chartTitle = selectedCourier ? `Rider Breakdown for ${selectedCourier}` : 'Rider Breakdown (All Couriers)';
+            const endpoint = `http://localhost:3001/api/rider-demographics?courierName=${selectedCourier}&gender=${selectedGender}`;//add 2nd
+            const courierText = selectedCourier || 'All Couriers';
+            const genderText = selectedGender || 'All Genders';
+            const chartTitle = selectedCourier ? `Rider Vehicles for ${selectedCourier}` : 'Rider Breakdown (All Couriers)';
 
             try {
                 const response = await fetch(endpoint);
@@ -73,23 +75,38 @@ export default function RiderDemographics() {
         };
 
         fetchDataAndRenderChart();
-    }, [selectedCourier]);
+    }, [selectedCourier, selectedGender]);
 
 
     return (
         <div>
-            <div className="controls mb-4">
-                <label htmlFor="courier-select" className="font-semibold text-slate-700 mr-2">Slice by Courier:</label>
+            <div className="controls mb-4 flex flex-wrap gap-4">
+                <div>
+                    <label htmlFor="courier-select" className="block text-sm font-semibold text-slate-700">Slice by Courier:</label>
 
-                <select
-                    id="courier-select"
-                    value={selectedCourier}
-                    onChange={(e) => setSelectedCourier(e.target.value)} // When it changes, we update the state.
-                    className="border-slate-300 rounded-md shadow-sm"
-                >
-                    <option value="">All Couriers</option>
-                    {couriers.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                    <select
+                        id="courier-select"
+                        value={selectedCourier}
+                        onChange={(e) => setSelectedCourier(e.target.value)}
+                        className="border-slate-300 rounded-md shadow-sm"
+                    >
+                        <option value="">All Couriers</option>
+                        {couriers.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="gender-select" className="block text-sm font-semibold text-slate-700">Slice by Gender:</label>
+                    <select
+                        id="gender-select"
+                        value={selectedGender}
+                        onChange={(e) => setSelectedGender(e.target.value)}
+                        className="border-slate-300 rounded-md shadow-sm"
+                    >
+                        <option value="">All Genders</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
             </div>
             <canvas ref={chartCanvas}></canvas>
         </div>
