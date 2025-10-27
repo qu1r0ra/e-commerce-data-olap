@@ -1079,7 +1079,7 @@ wheels = [
 
 [[package]]
 name = "supabase"
-version = "2.21.1"
+version = "2.22.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -1089,9 +1089,9 @@ dependencies = [
     { name = "supabase-auth" },
     { name = "supabase-functions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/4a/4cad709e8a937eb8c4b0084cc43bbe48576c7d5a44fafb00faab210dd890/supabase-2.21.1.tar.gz", hash = "sha256:e38993df74a7d38a3660c3400b40af4fa3018f97c53ddc070836d2eab856b70f", size = 9339, upload-time = "2025-10-03T19:03:29.352Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/03/2c/f232b07f07485fa19b841eb46bf51c2cb05244b2665102a04fe38f01d1b4/supabase-2.22.2.tar.gz", hash = "sha256:d9a163b73a97f737b5b16496ccd4735c2d1fd7ed1bea390a86490f6b3b416c21", size = 9334, upload-time = "2025-10-24T19:15:03.081Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ea/40/d21343eae724e2caaa375e74442426d3280186926360db838c770c1d4d69/supabase-2.21.1-py3-none-any.whl", hash = "sha256:8e75bcc1498e8447f7352b1172ff742a1255eca823a3d99a58ee701d2eb5470b", size = 16345, upload-time = "2025-10-03T19:03:28.057Z" },
+    { url = "https://files.pythonhosted.org/packages/15/0c/9666bd21db0a16c06461bce6b65c5b90102c3c633beebceee860a34fba89/supabase-2.22.2-py3-none-any.whl", hash = "sha256:3736a480730f62974dc57b683f465d2c6d49de20741b2d55b206572f501074c8", size = 16364, upload-time = "2025-10-24T19:15:02.145Z" },
 ]
 
 [[package]]
